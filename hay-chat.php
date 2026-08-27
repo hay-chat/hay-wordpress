@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Hay.chat
- * Plugin URI: https://github.com/hay-ai/hay-wordpress
+ * Plugin URI: https://github.com/hay-chat/hay-wordpress
  * Description: Add the Hay.chat AI chat widget to your WordPress website.
  * Version: 1.0.0
  * Author: Hay.chat
@@ -42,7 +42,7 @@ class HayChat
         add_action('admin_menu', [$this, 'add_admin_menu']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_init', [$this, 'handle_connect_return']);
-        add_action('wp_head', [$this, 'inject_widget_script']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_widget']);
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'add_settings_link']);
     }
 
@@ -118,7 +118,9 @@ class HayChat
      */
     public function handle_connect_return()
     {
-        if (!isset($_GET['page'], $_GET['hay_org_id']) || $_GET['page'] !== 'hay-chat') {
+        // The nonce lives in the `state` param and is verified below before anything is saved.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if (!isset($_GET['page'], $_GET['hay_org_id']) || sanitize_key(wp_unslash($_GET['page'])) !== 'hay-chat') {
             return;
         }
         if (!current_user_can('manage_options')) {
@@ -132,7 +134,7 @@ class HayChat
             exit;
         }
 
-        $org_id = sanitize_text_field(wp_unslash($_GET['hay_org_id']));
+        $org_id = sanitize_text_field(wp_unslash($_GET['hay_org_id'])); // nonce verified above
         if ($org_id === '') {
             wp_safe_redirect(add_query_arg('hay_connected', 'invalid', $redirect));
             exit;
@@ -191,9 +193,14 @@ class HayChat
                 <?php echo esc_html(get_admin_page_title()); ?>
             </h1>
 
-            <?php if (isset($_GET['hay_connected']) && $_GET['hay_connected'] === '1') : ?>
+            <?php
+            // Read-only status flag set by our own redirect; no data is processed from it.
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $connected_flag = isset($_GET['hay_connected']) ? sanitize_text_field(wp_unslash($_GET['hay_connected'])) : '';
+            ?>
+            <?php if ($connected_flag === '1') : ?>
                 <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Connected to Hay.chat — your Organization ID has been saved.', 'hay-chat'); ?></p></div>
-            <?php elseif (isset($_GET['hay_connected'])) : ?>
+            <?php elseif ($connected_flag !== '') : ?>
                 <div class="notice notice-error is-dismissible"><p><?php esc_html_e('Could not connect to Hay.chat. Please try again.', 'hay-chat'); ?></p></div>
             <?php endif; ?>
 
@@ -242,11 +249,11 @@ class HayChat
                             />
                             <p class="description">
                                 <?php
-                                $tokens_url = esc_url(rtrim($settings['base_url'], '/') . '/settings/api-tokens');
+                                $tokens_url = rtrim($settings['base_url'], '/') . '/settings/api-tokens';
                                 printf(
                                     /* translators: %s: link to the Hay.chat API tokens page */
                                     esc_html__('Or copy it manually from your Hay.chat dashboard: %s', 'hay-chat'),
-                                    '<a href="' . $tokens_url . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'hay-chat') . ' ↗</a>'
+                                    '<a href="' . esc_url($tokens_url) . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'hay-chat') . ' ↗</a>'
                                 );
                                 ?>
                             </p>
@@ -435,7 +442,7 @@ class HayChat
     // Frontend script injection
     // ──────────────────────────────────────────────
 
-    public function inject_widget_script()
+    public function enqueue_widget()
     {
         if (is_admin()) {
             return;
@@ -471,18 +478,16 @@ class HayChat
             }
         }
 
-        $base        = rtrim($settings['base_url'], '/');
-        $widget_js   = esc_url($base . '/v1/webchat/widget.js');
-        $widget_css  = esc_url($base . '/v1/webchat/widget.css');
-        $config_json = wp_json_encode($config);
-        ?>
-        <script>
-            window.HayChat = window.HayChat || {};
-            window.HayChat.config = <?php echo $config_json; ?>;
-        </script>
-        <script src="<?php echo $widget_js; ?>" async></script>
-        <link rel="stylesheet" href="<?php echo $widget_css; ?>">
-        <?php
+        $base = rtrim($settings['base_url'], '/');
+
+        // The widget is served by the Hay.chat server; version is managed there, not here.
+        wp_enqueue_style('hay-chat-widget', $base . '/v1/webchat/widget.css', [], null); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+        wp_enqueue_script('hay-chat-widget', $base . '/v1/webchat/widget.js', [], null, ['strategy' => 'async', 'in_footer' => false]); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+        wp_add_inline_script(
+            'hay-chat-widget',
+            'window.HayChat = window.HayChat || {}; window.HayChat.config = ' . wp_json_encode($config) . ';',
+            'before'
+        );
     }
 }
 

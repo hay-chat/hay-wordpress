@@ -1,8 +1,8 @@
 === Hay.chat ===
 Contributors: hayai
 Tags: chat, ai, chatbot, customer support, live chat
-Requires at least: 5.8
-Tested up to: 6.7
+Requires at least: 6.4
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv2 or later
@@ -29,6 +29,17 @@ Hay.chat adds an AI-powered chat widget to your WordPress site. Connect it to yo
 3. Go to the Hay.chat menu in the admin sidebar
 4. Enter your Organization ID (copy it from https://eu.hay.chat/settings/api-tokens)
 5. Save changes - the chat widget will appear on your site
+
+== External services ==
+
+This plugin connects to the Hay.chat service (https://hay.chat) to provide the chat widget. It is not a standalone chat system.
+
+* On every public page where the widget is enabled, the visitor's browser loads `widget.js` and `widget.css` from the Hay.chat server you configure (default `https://eu.hay.chat`). Chat messages typed by visitors are sent to that server so the AI agent can respond.
+* When you click "Connect with Hay.chat" in the settings, your browser is sent to the Hay.chat dashboard with your site name and URL so you can pick an organization; the dashboard redirects back with your Organization ID.
+* No data is sent from your server to Hay.chat by this plugin itself.
+
+Terms of service: https://hay.chat/terms-of-service
+Privacy policy: https://hay.chat/privacy-policy
 
 == Frequently Asked Questions ==
 
