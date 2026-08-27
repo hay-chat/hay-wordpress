@@ -39,6 +39,7 @@ class HayChat
     {
         add_action('admin_menu', [$this, 'add_admin_menu']);
         add_action('admin_init', [$this, 'register_settings']);
+        add_action('admin_init', [$this, 'handle_connect_return']);
         add_action('wp_head', [$this, 'inject_widget_script']);
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'add_settings_link']);
     }
@@ -91,6 +92,59 @@ class HayChat
         return $links;
     }
 
+    /**
+     * URL that sends the admin to the Hay.chat dashboard to pick an organization.
+     * The dashboard redirects back to admin.php?page=hay-chat with hay_org_id + state.
+     */
+    public function get_connect_url()
+    {
+        $settings   = $this->get_settings();
+        $return_url = admin_url('admin.php?page=hay-chat');
+        $state      = wp_create_nonce('hay_chat_connect');
+
+        return rtrim($settings['base_url'], '/') . '/settings/api-tokens?' . http_build_query([
+            'connect'    => 'wordpress',
+            'site_name'  => get_bloginfo('name'),
+            'site_url'   => home_url(),
+            'return_url' => $return_url,
+            'state'      => $state,
+        ]);
+    }
+
+    /**
+     * Handle the redirect back from the Hay.chat dashboard.
+     */
+    public function handle_connect_return()
+    {
+        if (!isset($_GET['page'], $_GET['hay_org_id']) || $_GET['page'] !== 'hay-chat') {
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        $redirect = admin_url('admin.php?page=hay-chat');
+
+        if (!isset($_GET['state']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['state'])), 'hay_chat_connect')) {
+            wp_safe_redirect(add_query_arg('hay_connected', 'invalid', $redirect));
+            exit;
+        }
+
+        $org_id = sanitize_text_field(wp_unslash($_GET['hay_org_id']));
+        if ($org_id === '') {
+            wp_safe_redirect(add_query_arg('hay_connected', 'invalid', $redirect));
+            exit;
+        }
+
+        $settings                    = $this->get_settings();
+        $settings['organization_id'] = $org_id;
+        $settings['enabled']         = true;
+        update_option($this->option_name, $settings);
+
+        wp_safe_redirect(add_query_arg('hay_connected', '1', $redirect));
+        exit;
+    }
+
     public function register_settings()
     {
         register_setting('hay_chat', $this->option_name, [
@@ -135,6 +189,26 @@ class HayChat
                 <?php echo esc_html(get_admin_page_title()); ?>
             </h1>
 
+            <?php if (isset($_GET['hay_connected']) && $_GET['hay_connected'] === '1') : ?>
+                <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Connected to Hay.chat — your Organization ID has been saved.', 'hay-chat'); ?></p></div>
+            <?php elseif (isset($_GET['hay_connected'])) : ?>
+                <div class="notice notice-error is-dismissible"><p><?php esc_html_e('Could not connect to Hay.chat. Please try again.', 'hay-chat'); ?></p></div>
+            <?php endif; ?>
+
+            <div class="card" style="max-width:640px;margin:16px 0;">
+                <?php if (empty($settings['organization_id'])) : ?>
+                    <h2 style="margin-top:0;"><?php esc_html_e('Connect your site', 'hay-chat'); ?></h2>
+                    <p><?php esc_html_e('Sign in to Hay.chat and pick the organization for this site. Your Organization ID will be filled in automatically.', 'hay-chat'); ?></p>
+                    <a class="button button-primary button-hero" href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Connect with Hay.chat', 'hay-chat'); ?></a>
+                <?php else : ?>
+                    <p style="margin:0;">
+                        <span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span>
+                        <?php esc_html_e('Connected to Hay.chat', 'hay-chat'); ?>
+                        &nbsp;·&nbsp;<a href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Reconnect / switch organization', 'hay-chat'); ?></a>
+                    </p>
+                <?php endif; ?>
+            </div>
+
             <form method="post" action="options.php">
                 <?php settings_fields('hay_chat'); ?>
 
@@ -169,7 +243,7 @@ class HayChat
                                 $tokens_url = esc_url(rtrim($settings['base_url'], '/') . '/settings/api-tokens');
                                 printf(
                                     /* translators: %s: link to the Hay.chat API tokens page */
-                                    esc_html__('Copy it from your Hay.chat dashboard: %s', 'hay-chat'),
+                                    esc_html__('Or copy it manually from your Hay.chat dashboard: %s', 'hay-chat'),
                                     '<a href="' . $tokens_url . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'hay-chat') . ' ↗</a>'
                                 );
                                 ?>
