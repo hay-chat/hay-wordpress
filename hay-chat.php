@@ -165,7 +165,14 @@ class HayChat
                                 required
                             />
                             <p class="description">
-                                <?php esc_html_e('Find this in your Hay dashboard under Settings > Organization.', 'hay-chat'); ?>
+                                <?php
+                                $tokens_url = esc_url(rtrim($settings['base_url'], '/') . '/settings/api-tokens');
+                                printf(
+                                    /* translators: %s: link to the Hay.chat API tokens page */
+                                    esc_html__('Copy it from your Hay.chat dashboard: %s', 'hay-chat'),
+                                    '<a href="' . $tokens_url . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'hay-chat') . ' ↗</a>'
+                                );
+                                ?>
                             </p>
                         </td>
                     </tr>

@@ -27,14 +27,14 @@ Hay.chat adds an AI-powered chat widget to your WordPress site. Connect it to yo
 1. Upload the `hay-chat` folder to `/wp-content/plugins/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to the Hay.chat menu in the admin sidebar
-4. Enter your Organization ID (found in your Hay dashboard under Settings > Organization)
+4. Enter your Organization ID (copy it from https://eu.hay.chat/settings/api-tokens)
 5. Save changes - the chat widget will appear on your site
 
 == Frequently Asked Questions ==
 
 = Where do I find my Organization ID? =
 
-Log in to your Hay.chat dashboard and go to Settings > Organization. Your Organization ID will be displayed there.
+Log in to your Hay.chat dashboard and go to Settings > API Tokens (https://eu.hay.chat/settings/api-tokens). Your Organization ID is shown there.
 
 = Can I customize the appearance? =
 
