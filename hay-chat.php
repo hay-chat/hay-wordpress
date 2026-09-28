@@ -21,7 +21,7 @@ define('HAY_CHAT_VERSION', '1.0.0');
 define('HAY_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('HAY_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-class HayChat
+class Hay_Chat
 {
     private static $instance = null;
 
@@ -512,4 +512,4 @@ class HayChat
 }
 
 // Initialize
-HayChat::instance();
+Hay_Chat::instance();
