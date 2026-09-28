@@ -1,5 +1,5 @@
 === Hay.chat ===
-Contributors: hayai
+Contributors: rgrjnr
 Tags: chat, ai, chatbot, customer support, live chat
 Requires at least: 6.4
 Tested up to: 7.1
@@ -54,6 +54,10 @@ Yes. You can change the widget position, theme color, title, subtitle, greeting 
 = Does this work with self-hosted Hay? =
 
 Yes. Change the API Base URL in the settings (the widget script is loaded from it automatically) to point to your self-hosted instance.
+
+= What happens when I uninstall the plugin? =
+
+All plugin settings are removed from your database. No data is stored on your server by the plugin apart from those settings.
 
 == Changelog ==
 

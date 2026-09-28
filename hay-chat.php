@@ -4,6 +4,8 @@
  * Plugin URI: https://github.com/hay-chat/hay-wordpress
  * Description: Add the Hay.chat AI chat widget to your WordPress website.
  * Version: 1.0.0
+ * Requires at least: 6.4
+ * Requires PHP: 7.4
  * Author: Hay.chat
  * Author URI: https://hay.chat
  * License: GPL-2.0-or-later
@@ -24,6 +26,10 @@ class HayChat
     private static $instance = null;
 
     private $option_name = 'hay_chat_settings';
+
+    private $themes = ['blue', 'green', 'purple', 'black'];
+
+    private $positions = ['left', 'right'];
 
     const MENU_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMCAzMCI+PHBhdGggZmlsbD0iI2E3YWFhZCIgZD0iTTIxLjM1MzggMEMyNS4yNjg1IDAgMjcuMjI1OCA0LjgyMjEyZS0wNSAyOC40NDE5IDEuMjMwMTlDMjkuNjU4MSAyLjQ2MDM0IDI5LjY1ODEgNC40NDAyIDI5LjY1ODEgOC4zOTk5OVYyMS42QzI5LjY1ODEgMjUuNTU5OCAyOS42NTgxIDI3LjUzOTcgMjguNDQxOSAyOC43Njk4QzI3LjIyNTggMzAgMjUuMjY4NSAzMCAyMS4zNTM4IDMwSDguMzA0MjZDNC4zODk2IDMwIDIuNDMyMyAzMCAxLjIxNjE3IDI4Ljc2OThDNC43NjcxNmUtMDUgMjcuNTM5NyAwIDI1LjU1OTggMCAyMS42VjguMzk5OTlDMCA0LjQ0MDIgMy44ODE2NmUtMDUgMi40NjAzNCAxLjIxNjE3IDEuMjMwMTlDMi40MzIzIDMuODY1MDVlLTA1IDQuMzg5NiAwIDguMzA0MjYgMEgyMS4zNTM4Wk0xOC4zMTIxIDE1LjUwMjNDMTguMzEyMSAyLjQzNjA5IDE2LjMxODYgNC43ODgwMSAxMy4xOTg1IDE1Ljg1MDdDMTIuNDE4NCAwLjQzMjU3OCAxMC4wNzgzIDguNTMzNzEgNi41MjQ3OSAyMS42QzEwLjg1ODMgMjEuNiAyMi4yMTI0IDIxLjA3NzMgMjIuMjEyNCAyMS4wNzczQzIyLjczMjQgMTQuMjgyOCAyNC40NjU4IDEuNDc3ODkgMTguMzEyMSAxNS41MDIzWiIvPjwvc3ZnPg==';
 
@@ -67,6 +73,9 @@ class HayChat
     public function get_settings()
     {
         $saved = get_option($this->option_name, []);
+        if (!is_array($saved)) {
+            $saved = [];
+        }
         return wp_parse_args($saved, $this->get_defaults());
     }
 
@@ -89,7 +98,11 @@ class HayChat
 
     public function add_settings_link($links)
     {
-        $settings_link = '<a href="admin.php?page=hay-chat">' . __('Settings', 'hay-chat') . '</a>';
+        $settings_link = sprintf(
+            '<a href="%s">%s</a>',
+            esc_url(admin_url('admin.php?page=hay-chat')),
+            esc_html__('Settings', 'hay-chat')
+        );
         array_unshift($links, $settings_link);
         return $links;
     }
@@ -163,10 +176,14 @@ class HayChat
         $defaults  = $this->get_defaults();
         $sanitized = [];
 
+        if (!is_array($input)) {
+            $input = [];
+        }
+
         $sanitized['organization_id']       = sanitize_text_field($input['organization_id'] ?? $defaults['organization_id']);
-        $sanitized['base_url']              = esc_url_raw($input['base_url'] ?? $defaults['base_url']);
-        $sanitized['position']              = in_array($input['position'] ?? '', ['left', 'right'], true) ? $input['position'] : $defaults['position'];
-        $sanitized['theme']                 = sanitize_text_field($input['theme'] ?? $defaults['theme']);
+        $sanitized['base_url']              = untrailingslashit(esc_url_raw($input['base_url'] ?? $defaults['base_url']));
+        $sanitized['position']              = in_array($input['position'] ?? '', $this->positions, true) ? $input['position'] : $defaults['position'];
+        $sanitized['theme']                 = in_array($input['theme'] ?? '', $this->themes, true) ? $input['theme'] : $defaults['theme'];
         $sanitized['show_greeting']         = !empty($input['show_greeting']);
         $sanitized['widget_title']          = sanitize_text_field($input['widget_title'] ?? $defaults['widget_title']);
         $sanitized['widget_subtitle']       = sanitize_text_field($input['widget_subtitle'] ?? $defaults['widget_subtitle']);
@@ -175,6 +192,10 @@ class HayChat
         $sanitized['agent_avatar_url']      = esc_url_raw($input['agent_avatar_url'] ?? $defaults['agent_avatar_url']);
         $sanitized['organization_logo_url'] = esc_url_raw($input['organization_logo_url'] ?? $defaults['organization_logo_url']);
         $sanitized['enabled']               = !empty($input['enabled']);
+
+        if (empty($sanitized['base_url'])) {
+            $sanitized['base_url'] = $defaults['base_url'];
+        }
 
         return $sanitized;
     }
@@ -303,9 +324,7 @@ class HayChat
                         </th>
                         <td>
                             <select id="hay_theme" name="<?php echo esc_attr($this->option_name); ?>[theme]">
-                                <?php
-                                $themes = ['blue', 'green', 'purple', 'black'];
-                                foreach ($themes as $theme) : ?>
+                                <?php foreach ($this->themes as $theme) : ?>
                                     <option value="<?php echo esc_attr($theme); ?>" <?php selected($settings['theme'], $theme); ?>>
                                         <?php echo esc_html(ucfirst($theme)); ?>
                                     </option>
@@ -341,7 +360,7 @@ class HayChat
                                 name="<?php echo esc_attr($this->option_name); ?>[widget_title]"
                                 value="<?php echo esc_attr($settings['widget_title']); ?>"
                                 class="regular-text"
-                                placeholder="Chat with us"
+                                placeholder="<?php esc_attr_e('Chat with us', 'hay-chat'); ?>"
                             />
                         </td>
                     </tr>
@@ -374,7 +393,7 @@ class HayChat
                                 name="<?php echo esc_attr($this->option_name); ?>[greeting_message]"
                                 value="<?php echo esc_attr($settings['greeting_message']); ?>"
                                 class="regular-text"
-                                placeholder="Hello! How can we help?"
+                                placeholder="<?php esc_attr_e('Hello! How can we help?', 'hay-chat'); ?>"
                             />
                         </td>
                     </tr>
