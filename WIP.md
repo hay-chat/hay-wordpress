@@ -1,6 +1,6 @@
-## 2026-09-28 — hay-wordpress main @ 583d676 (github.com/hay-chat/hay-wordpress), NOT pushed
+## 2026-09-28 — hay-wordpress main @ b0872c7 (github.com/hay-chat/hay-wordpress), NOT pushed
 
-**Works:** Submission polish committed: Requires at least/PHP headers, theme whitelist, escaped
+**Works:** Browser-tested settings page (save, notice, plugins link) + widget on frontend. Submission polish committed: Requires at least/PHP headers, theme whitelist, escaped
 settings link, translatable placeholders, uninstall.php, Contributors: rgrjnr. Plugin Check (WP 7.1
 in docker, excludes per .distignore) = no errors. Clean zip built via .distignore at
 ../hay-chat.zip (LICENSE, hay-chat.php, readme.txt, uninstall.php only — no .git).
