@@ -219,7 +219,7 @@ class HayChat
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $connected_flag = isset($_GET['hay_connected']) ? sanitize_text_field(wp_unslash($_GET['hay_connected'])) : '';
             ?>
-            <?php settings_errors('hay_chat'); ?>
+            <?php settings_errors(); ?>
             <?php if ($connected_flag === '1') : ?>
                 <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Connected to Hay.chat — your Organization ID has been saved.', 'hay-chat'); ?></p></div>
             <?php elseif ($connected_flag !== '') : ?>
