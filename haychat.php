@@ -10,7 +10,7 @@
  * Author URI: https://hay.chat
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: hay-chat
+ * Text Domain: haychat
  */
 
 if (!defined('ABSPATH')) {
@@ -86,8 +86,8 @@ class Hay_Chat
     public function add_admin_menu()
     {
         add_menu_page(
-            __('Hay.chat Settings', 'hay-chat'),
-            __('Hay.chat', 'hay-chat'),
+            __('Hay.chat Settings', 'haychat'),
+            __('Hay.chat', 'haychat'),
             'manage_options',
             'hay-chat',
             [$this, 'render_settings_page'],
@@ -101,7 +101,7 @@ class Hay_Chat
         $settings_link = sprintf(
             '<a href="%s">%s</a>',
             esc_url(admin_url('admin.php?page=hay-chat')),
-            esc_html__('Settings', 'hay-chat')
+            esc_html__('Settings', 'haychat')
         );
         array_unshift($links, $settings_link);
         return $links;
@@ -133,7 +133,7 @@ class Hay_Chat
     {
         // The nonce lives in the `state` param and is verified below before anything is saved.
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if (!isset($_GET['page'], $_GET['hay_org_id']) || sanitize_key(wp_unslash($_GET['page'])) !== 'hay-chat') {
+        if (!isset($_GET['page'], $_GET['hay_org_id']) || sanitize_key(wp_unslash($_GET['page'])) !== 'haychat') {
             return;
         }
         if (!current_user_can('manage_options')) {
@@ -221,21 +221,21 @@ class Hay_Chat
             ?>
             <?php settings_errors(); ?>
             <?php if ($connected_flag === '1') : ?>
-                <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Connected to Hay.chat — your Organization ID has been saved.', 'hay-chat'); ?></p></div>
+                <div class="notice notice-success is-dismissible"><p><?php esc_html_e('Connected to Hay.chat — your Organization ID has been saved.', 'haychat'); ?></p></div>
             <?php elseif ($connected_flag !== '') : ?>
-                <div class="notice notice-error is-dismissible"><p><?php esc_html_e('Could not connect to Hay.chat. Please try again.', 'hay-chat'); ?></p></div>
+                <div class="notice notice-error is-dismissible"><p><?php esc_html_e('Could not connect to Hay.chat. Please try again.', 'haychat'); ?></p></div>
             <?php endif; ?>
 
             <div class="card" style="max-width:640px;margin:16px 0;">
                 <?php if (empty($settings['organization_id'])) : ?>
-                    <h2 style="margin-top:0;"><?php esc_html_e('Connect your site', 'hay-chat'); ?></h2>
-                    <p><?php esc_html_e('Sign in to Hay.chat and pick the organization for this site. Your Organization ID will be filled in automatically.', 'hay-chat'); ?></p>
-                    <a class="button button-primary button-hero" href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Connect with Hay.chat', 'hay-chat'); ?></a>
+                    <h2 style="margin-top:0;"><?php esc_html_e('Connect your site', 'haychat'); ?></h2>
+                    <p><?php esc_html_e('Sign in to Hay.chat and pick the organization for this site. Your Organization ID will be filled in automatically.', 'haychat'); ?></p>
+                    <a class="button button-primary button-hero" href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Connect with Hay.chat', 'haychat'); ?></a>
                 <?php else : ?>
                     <p style="margin:0;">
                         <span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span>
-                        <?php esc_html_e('Connected to Hay.chat', 'hay-chat'); ?>
-                        &nbsp;·&nbsp;<a href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Reconnect / switch organization', 'hay-chat'); ?></a>
+                        <?php esc_html_e('Connected to Hay.chat', 'haychat'); ?>
+                        &nbsp;·&nbsp;<a href="<?php echo esc_url($this->get_connect_url()); ?>"><?php esc_html_e('Reconnect / switch organization', 'haychat'); ?></a>
                     </p>
                 <?php endif; ?>
             </div>
@@ -246,11 +246,11 @@ class Hay_Chat
                 <table class="form-table" role="presentation">
                     <!-- Enable/Disable -->
                     <tr>
-                        <th scope="row"><?php esc_html_e('Enable Widget', 'hay-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Enable Widget', 'haychat'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[enabled]" value="1" <?php checked($settings['enabled']); ?> />
-                                <?php esc_html_e('Show the Hay.chat widget on your website', 'hay-chat'); ?>
+                                <?php esc_html_e('Show the Hay.chat widget on your website', 'haychat'); ?>
                             </label>
                         </td>
                     </tr>
@@ -258,7 +258,7 @@ class Hay_Chat
                     <!-- Organization ID -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_organization_id"><?php esc_html_e('Organization ID', 'hay-chat'); ?></label>
+                            <label for="hay_organization_id"><?php esc_html_e('Organization ID', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -274,8 +274,8 @@ class Hay_Chat
                                 $tokens_url = rtrim($settings['base_url'], '/') . '/settings/api-tokens';
                                 printf(
                                     /* translators: %s: link to the Hay.chat API tokens page */
-                                    esc_html__('Or copy it manually from your Hay.chat dashboard: %s', 'hay-chat'),
-                                    '<a href="' . esc_url($tokens_url) . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'hay-chat') . ' ↗</a>'
+                                    esc_html__('Or copy it manually from your Hay.chat dashboard: %s', 'haychat'),
+                                    '<a href="' . esc_url($tokens_url) . '" target="_blank" rel="noopener">' . esc_html__('Settings › API Tokens', 'haychat') . ' ↗</a>'
                                 );
                                 ?>
                             </p>
@@ -285,7 +285,7 @@ class Hay_Chat
                     <!-- Base URL -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_base_url"><?php esc_html_e('API Base URL', 'hay-chat'); ?></label>
+                            <label for="hay_base_url"><?php esc_html_e('API Base URL', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -296,24 +296,24 @@ class Hay_Chat
                                 class="regular-text"
                             />
                             <p class="description">
-                                <?php esc_html_e('Your Hay.chat server URL. Default: https://eu.hay.chat (EU). The widget script is loaded automatically from this URL.', 'hay-chat'); ?>
+                                <?php esc_html_e('Your Hay.chat server URL. Default: https://eu.hay.chat (EU). The widget script is loaded automatically from this URL.', 'haychat'); ?>
                             </p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th colspan="2"><h2><?php esc_html_e('Appearance', 'hay-chat'); ?></h2></th>
+                        <th colspan="2"><h2><?php esc_html_e('Appearance', 'haychat'); ?></h2></th>
                     </tr>
 
                     <!-- Position -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_position"><?php esc_html_e('Widget Position', 'hay-chat'); ?></label>
+                            <label for="hay_position"><?php esc_html_e('Widget Position', 'haychat'); ?></label>
                         </th>
                         <td>
                             <select id="hay_position" name="<?php echo esc_attr($this->option_name); ?>[position]">
-                                <option value="right" <?php selected($settings['position'], 'right'); ?>><?php esc_html_e('Right', 'hay-chat'); ?></option>
-                                <option value="left" <?php selected($settings['position'], 'left'); ?>><?php esc_html_e('Left', 'hay-chat'); ?></option>
+                                <option value="right" <?php selected($settings['position'], 'right'); ?>><?php esc_html_e('Right', 'haychat'); ?></option>
+                                <option value="left" <?php selected($settings['position'], 'left'); ?>><?php esc_html_e('Left', 'haychat'); ?></option>
                             </select>
                         </td>
                     </tr>
@@ -321,7 +321,7 @@ class Hay_Chat
                     <!-- Theme -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_theme"><?php esc_html_e('Theme Color', 'hay-chat'); ?></label>
+                            <label for="hay_theme"><?php esc_html_e('Theme Color', 'haychat'); ?></label>
                         </th>
                         <td>
                             <select id="hay_theme" name="<?php echo esc_attr($this->option_name); ?>[theme]">
@@ -336,23 +336,23 @@ class Hay_Chat
 
                     <!-- Show Greeting -->
                     <tr>
-                        <th scope="row"><?php esc_html_e('Show Greeting', 'hay-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Show Greeting', 'haychat'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[show_greeting]" value="1" <?php checked($settings['show_greeting']); ?> />
-                                <?php esc_html_e('Display a greeting message when the widget loads', 'hay-chat'); ?>
+                                <?php esc_html_e('Display a greeting message when the widget loads', 'haychat'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th colspan="2"><h2><?php esc_html_e('Custom Text', 'hay-chat'); ?></h2></th>
+                        <th colspan="2"><h2><?php esc_html_e('Custom Text', 'haychat'); ?></h2></th>
                     </tr>
 
                     <!-- Widget Title -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_widget_title"><?php esc_html_e('Widget Title', 'hay-chat'); ?></label>
+                            <label for="hay_widget_title"><?php esc_html_e('Widget Title', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -361,7 +361,7 @@ class Hay_Chat
                                 name="<?php echo esc_attr($this->option_name); ?>[widget_title]"
                                 value="<?php echo esc_attr($settings['widget_title']); ?>"
                                 class="regular-text"
-                                placeholder="<?php esc_attr_e('Chat with us', 'hay-chat'); ?>"
+                                placeholder="<?php esc_attr_e('Chat with us', 'haychat'); ?>"
                             />
                         </td>
                     </tr>
@@ -369,7 +369,7 @@ class Hay_Chat
                     <!-- Widget Subtitle -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_widget_subtitle"><?php esc_html_e('Widget Subtitle', 'hay-chat'); ?></label>
+                            <label for="hay_widget_subtitle"><?php esc_html_e('Widget Subtitle', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -385,7 +385,7 @@ class Hay_Chat
                     <!-- Greeting Message -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_greeting_message"><?php esc_html_e('Greeting Message', 'hay-chat'); ?></label>
+                            <label for="hay_greeting_message"><?php esc_html_e('Greeting Message', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -394,19 +394,19 @@ class Hay_Chat
                                 name="<?php echo esc_attr($this->option_name); ?>[greeting_message]"
                                 value="<?php echo esc_attr($settings['greeting_message']); ?>"
                                 class="regular-text"
-                                placeholder="<?php esc_attr_e('Hello! How can we help?', 'hay-chat'); ?>"
+                                placeholder="<?php esc_attr_e('Hello! How can we help?', 'haychat'); ?>"
                             />
                         </td>
                     </tr>
 
                     <tr>
-                        <th colspan="2"><h2><?php esc_html_e('Branding', 'hay-chat'); ?></h2></th>
+                        <th colspan="2"><h2><?php esc_html_e('Branding', 'haychat'); ?></h2></th>
                     </tr>
 
                     <!-- Agent Name -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_agent_name"><?php esc_html_e('Agent Name', 'hay-chat'); ?></label>
+                            <label for="hay_agent_name"><?php esc_html_e('Agent Name', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -422,7 +422,7 @@ class Hay_Chat
                     <!-- Agent Avatar URL -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_agent_avatar_url"><?php esc_html_e('Agent Avatar URL', 'hay-chat'); ?></label>
+                            <label for="hay_agent_avatar_url"><?php esc_html_e('Agent Avatar URL', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input
@@ -438,7 +438,7 @@ class Hay_Chat
                     <!-- Organization Logo URL -->
                     <tr>
                         <th scope="row">
-                            <label for="hay_organization_logo_url"><?php esc_html_e('Organization Logo URL', 'hay-chat'); ?></label>
+                            <label for="hay_organization_logo_url"><?php esc_html_e('Organization Logo URL', 'haychat'); ?></label>
                         </th>
                         <td>
                             <input

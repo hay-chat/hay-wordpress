@@ -24,7 +24,7 @@ Hay.chat adds an AI-powered chat widget to your WordPress site. Connect it to yo
 
 == Installation ==
 
-1. Upload the `hay-chat` folder to `/wp-content/plugins/`
+1. Upload the `haychat` folder to `/wp-content/plugins/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to the Hay.chat menu in the admin sidebar
 4. Enter your Organization ID (copy it from https://eu.hay.chat/settings/api-tokens)

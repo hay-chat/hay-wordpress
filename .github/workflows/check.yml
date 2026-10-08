@@ -7,6 +7,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: wordpress/plugin-check-action@v1
         with:
-          slug: hay-chat
+          slug: haychat
           exclude-files: .gitignore,.distignore,WIP.md
           exclude-directories: .github
