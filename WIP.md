@@ -1,3 +1,13 @@
+## 2026-10-08 — hay-wordpress main (github.com/hay-chat/hay-wordpress), NOT pushed
+
+**Works:** WP.org review R haychat/rgrjnr/4Oct26 flagged text domain "hay-chat" ≠ slug "haychat".
+Fixed: all 34 gettext calls + Text Domain header → `haychat`; main file renamed haychat.php;
+readme install path + CI slugs updated. Clean zip rebuilt at ../haychat.zip (folder haychat/).
+**Not verified:** no local php / docker daemon down, so Plugin Check + WP_DEBUG test not re-run
+(change is pure string replace, diff verified to touch only the domain string).
+**Next:** push; start docker, run Plugin Check on ../haychat.zip; upload at
+wordpress.org/plugins/developers/add/ ; reply to review email (concise: text domain fixed).
+
 ## 2026-09-28 — hay-wordpress main @ b0872c7 (github.com/hay-chat/hay-wordpress), NOT pushed
 
 **Works:** Browser-tested settings page (save, notice, plugins link) + widget on frontend. Submission polish committed: Requires at least/PHP headers, theme whitelist, escaped
