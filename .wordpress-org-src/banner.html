@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;width:1544px;height:500px;overflow:hidden}
+body{background:#001BF4;font-family:Gabarito,Inter,system-ui,sans-serif;color:#fff;position:relative}
+.glow{position:absolute;right:-180px;top:-260px;width:900px;height:900px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.18),rgba(255,255,255,0))}
+.glow2{position:absolute;left:-300px;bottom:-500px;width:900px;height:900px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.25),rgba(0,0,0,0))}
+.wrap{position:absolute;left:120px;top:0;height:500px;display:flex;flex-direction:column;justify-content:center;gap:28px}
+.brand{display:flex;align-items:center;gap:22px}
+.brand .mark{width:72px;height:72px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center}
+.brand .name{font-weight:700;font-size:54px;letter-spacing:-.5px}
+h1{margin:0;font-weight:700;font-size:70px;line-height:1.05;letter-spacing:-1.5px;max-width:820px}
+p{margin:0;font-family:Inter,system-ui,sans-serif;font-weight:400;font-size:28px;line-height:1.35;opacity:.88;max-width:780px}
+.card{position:absolute;right:120px;top:70px;width:400px;height:360px;background:#fff;border-radius:28px;box-shadow:0 40px 90px rgba(0,0,0,.35);overflow:hidden;color:#0F282C;font-family:Inter,system-ui,sans-serif}
+.card .hd{height:92px;background:#001BF4;display:flex;align-items:center;gap:16px;padding:0 28px;color:#fff}
+.card .hd .av{width:48px;height:48px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center}
+.card .hd b{font-family:Gabarito;font-size:24px;font-weight:600;display:block}
+.card .hd span{font-size:16px;opacity:.85}
+.msgs{padding:24px 24px 0;display:flex;flex-direction:column;gap:14px}
+.m{max-width:78%;padding:14px 18px;border-radius:18px;font-size:19px;line-height:1.35}
+.bot{background:#f0f2f5;border-bottom-left-radius:6px;align-self:flex-start}
+.me{background:#001BF4;color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
+.dots{display:flex;gap:6px;padding:16px 20px;background:#f0f2f5;border-radius:18px;border-bottom-left-radius:6px;align-self:flex-start}
+.dots i{width:9px;height:9px;border-radius:50%;background:#9aa3ad;display:block}
+</style></head><body>
+<div class="glow"></div><div class="glow2"></div>
+<div class="wrap">
+  <div class="brand"><div class="mark"><svg viewBox="0 0 30 30" width="52" height="52"><path fill="#001BF4" d="M22.2225 20.8464C22.2225 20.8464 10.8633 21.3634 6.52783 21.3634C10.0829 8.44011 12.4241 0.42768 13.2046 15.6771C16.3261 4.73544 18.3205 2.40925 18.3205 15.3325C24.477 1.46155 22.7428 14.1264 22.2225 20.8464Z"/></svg></div><div class="name">Hay.chat</div></div>
+  <h1>AI customer support, on your WordPress site</h1>
+  <p>Add the Hay.chat widget in one click. Your AI agent answers visitors 24/7, hands off to humans when it matters.</p>
+</div>
+<div class="card">
+  <div class="hd"><div class="av"><svg viewBox="0 0 30 30" width="34" height="34"><path fill="#001BF4" d="M22.2225 20.8464C22.2225 20.8464 10.8633 21.3634 6.52783 21.3634C10.0829 8.44011 12.4241 0.42768 13.2046 15.6771C16.3261 4.73544 18.3205 2.40925 18.3205 15.3325C24.477 1.46155 22.7428 14.1264 22.2225 20.8464Z"/></svg></div><div><b>Hay</b><span>Typically replies instantly</span></div></div>
+  <div class="msgs">
+    <div class="m bot">Hi! 👋 How can I help you today?</div>
+    <div class="m me">Do you ship to Portugal?</div>
+    <div class="m bot">Yes! Free over €50, delivered in 3–5 days.</div>
+    <div class="dots"><i></i><i></i><i></i></div>
+  </div>
+</div>
+</body></html>

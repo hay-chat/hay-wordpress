@@ -5,3 +5,6 @@
 node_modules
 *.zip
 WIP.md
+.wordpress-org
+.wordpress-org-src
+.claude

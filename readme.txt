@@ -59,6 +59,12 @@ Yes. Change the API Base URL in the settings (the widget script is loaded from i
 
 All plugin settings are removed from your database. No data is stored on your server by the plugin apart from those settings.
 
+== Screenshots ==
+
+1. Settings page: connect your Hay.chat organization and enable the widget.
+2. Appearance, custom text and branding options for the widget.
+3. The Hay.chat widget open on the frontend of a WordPress site.
+
 == Changelog ==
 
 = 1.0.0 =
