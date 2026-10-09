@@ -4,8 +4,9 @@
 banner 772x250 + 1544x500 rendered from .wordpress-org-src/banner.html via headless Chrome, 3 screenshots from
 local docker WP at localhost:8085). readme.txt has Screenshots section. 1.0.0 COMMITTED to SVN (trunk + tags/1.0.0 + assets);
 wordpress.org/plugins/haychat is live, icon/banner/screenshots serving. SVN wc: ~/Documents/code/hay/haychat-svn.
-**Next:** add SVN_USERNAME/SVN_PASSWORD repo secrets on github.com/hay-chat/hay-wordpress so deploy.yml handles
-future releases (bump Version + Stable tag + changelog, publish GitHub release).
+SVN_USERNAME/SVN_PASSWORD GitHub secrets set.
+**Next:** nothing pending. Future release = bump Version (haychat.php) + Stable tag/changelog (readme.txt),
+publish a GitHub release → deploy.yml pushes to SVN.
 
 ## 2026-10-08 — hay-wordpress main (github.com/hay-chat/hay-wordpress), NOT pushed
 
