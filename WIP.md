@@ -1,3 +1,13 @@
+## 2026-10-09 — hay-wordpress main @ 8d5ce25 (pushed) — WP.org APPROVED, slug haychat
+
+**Works:** WP.org approved (review P0TDX377478HGN). Listing assets built in .wordpress-org/ (icon 128/256/svg,
+banner 772x250 + 1544x500 rendered from .wordpress-org-src/banner.html via headless Chrome, 3 screenshots from
+local docker WP at localhost:8085). readme.txt has Screenshots section. SVN working copy fully staged at
+~/Documents/code/hay/haychat-svn (trunk + tags/1.0.0 + assets, mime-types set) — NOT committed (needs SVN password).
+**Next:** set SVN password at profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password, then
+`cd ~/Documents/code/hay/haychat-svn && svn commit -m "Release 1.0.0" --username rgrjnr`; add SVN_USERNAME/SVN_PASSWORD
+repo secrets on github.com/hay-chat/hay-wordpress so deploy.yml works for future releases; check wordpress.org/plugins/haychat.
+
 ## 2026-10-08 — hay-wordpress main (github.com/hay-chat/hay-wordpress), NOT pushed
 
 **Works:** WP.org review R haychat/rgrjnr/4Oct26 flagged text domain "hay-chat" ≠ slug "haychat".
