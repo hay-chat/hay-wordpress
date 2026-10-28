@@ -1,3 +1,8 @@
+## 2026-10-28 — claude/woo-marketplace (worktree ../hay-wordpress-woo), committed, NOT pushed
+- 9228a97 brings the 1.0.1 + 1.1.0 SVN patches into git (they were never committed). d76d5fc declares HPOS + cart/checkout-blocks compat, WC 10.0–11.2 headers.
+- Verified: demo docker WC 11.2.1, HPOS on, both features list haychat as compatible; Plugin Check clean on a haychat/ build; widget enqueues.
+- Next: in-WP-admin sign-up/connect + billing screen (plan: hay-core/tasks/woo-marketplace.md). 1.1.0 still not released to WP.org.
+
 ## 2026-10-09 — hay-wordpress main @ 8d5ce25 (pushed) — WP.org APPROVED, slug haychat
 
 **Works:** WP.org approved (review P0TDX377478HGN). Listing assets built in .wordpress-org/ (icon 128/256/svg,
