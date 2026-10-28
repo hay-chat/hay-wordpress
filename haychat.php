@@ -3,7 +3,7 @@
  * Plugin Name: Hay.chat
  * Plugin URI: https://github.com/hay-chat/hay-wordpress
  * Description: Add the Hay.chat AI chat widget to your WordPress website.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author: Hay.chat
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('HAY_CHAT_VERSION', '1.0.0');
+define('HAY_CHAT_VERSION', '1.1.0');
 define('HAY_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('HAY_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -50,6 +50,8 @@ class Hay_Chat
         add_action('admin_init', [$this, 'handle_connect_return']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_widget']);
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'add_settings_link']);
+        // Tell the WP Consent API that this plugin follows its consent signals.
+        add_filter('wp_consent_api_registered_' . plugin_basename(__FILE__), '__return_true');
     }
 
     public function get_defaults()
@@ -67,6 +69,11 @@ class Hay_Chat
             'agent_avatar_url' => '',
             'organization_logo_url' => '',
             'enabled'         => true,
+            // "Hide on" rules. All off by default.
+            'hide_on_cart'     => false,
+            'hide_on_checkout' => false,
+            'hide_on_account'  => false,
+            'hide_on_paths'    => '',
         ];
     }
 
@@ -133,7 +140,7 @@ class Hay_Chat
     {
         // The nonce lives in the `state` param and is verified below before anything is saved.
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if (!isset($_GET['page'], $_GET['hay_org_id']) || sanitize_key(wp_unslash($_GET['page'])) !== 'haychat') {
+        if (!isset($_GET['page'], $_GET['hay_org_id']) || sanitize_key(wp_unslash($_GET['page'])) !== 'hay-chat') {
             return;
         }
         if (!current_user_can('manage_options')) {
@@ -160,6 +167,56 @@ class Hay_Chat
 
         wp_safe_redirect(add_query_arg('hay_connected', '1', $redirect));
         exit;
+    }
+
+    // ──────────────────────────────────────────────
+    // WooCommerce store actions (one-click connect)
+    // ──────────────────────────────────────────────
+
+    public function is_woocommerce_active()
+    {
+        return class_exists('WooCommerce');
+    }
+
+    /**
+     * Dashboard page that starts WooCommerce's own key approval for this site.
+     * The Hay.chat dashboard saves the site URL, then its "Connect WooCommerce"
+     * button sends the admin to /wc-auth/v1/authorize on this site, where they
+     * approve read/write keys for Hay.chat. WooCommerce posts the keys straight
+     * to Hay.chat; they never pass through this plugin.
+     */
+    public function get_store_connect_url()
+    {
+        $settings = $this->get_settings();
+
+        return rtrim($settings['base_url'], '/') . '/integrations/plugins/hay-plugin-woocommerce?' . http_build_query([
+            'connect'        => '1',
+            'config.siteUrl' => home_url(),
+        ]);
+    }
+
+    /**
+     * Whether WooCommerce holds read/write REST keys approved for Hay.chat.
+     * WooCommerce names keys from its approval screen "<app name> - API (<date>)".
+     */
+    public function has_store_keys()
+    {
+        global $wpdb;
+
+        if (!$this->is_woocommerce_active()) {
+            return false;
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- WooCommerce has no API to list keys; admin screen only.
+        $count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->prefix}woocommerce_api_keys WHERE description LIKE %s AND permissions = %s",
+                $wpdb->esc_like('Hay.chat') . '%',
+                'read_write'
+            )
+        );
+
+        return (int) $count > 0;
     }
 
     public function register_settings()
@@ -192,12 +249,45 @@ class Hay_Chat
         $sanitized['agent_avatar_url']      = esc_url_raw($input['agent_avatar_url'] ?? $defaults['agent_avatar_url']);
         $sanitized['organization_logo_url'] = esc_url_raw($input['organization_logo_url'] ?? $defaults['organization_logo_url']);
         $sanitized['enabled']               = !empty($input['enabled']);
+        $sanitized['hide_on_cart']          = !empty($input['hide_on_cart']);
+        $sanitized['hide_on_checkout']      = !empty($input['hide_on_checkout']);
+        $sanitized['hide_on_account']       = !empty($input['hide_on_account']);
+        $sanitized['hide_on_paths']         = $this->sanitize_paths($input['hide_on_paths'] ?? $defaults['hide_on_paths']);
 
         if (empty($sanitized['base_url'])) {
             $sanitized['base_url'] = $defaults['base_url'];
         }
 
         return $sanitized;
+    }
+
+    /**
+     * One path per line, each starting with "/". A "*" matches anything.
+     * Full URLs are reduced to their path; empty and duplicate lines are dropped.
+     */
+    public function sanitize_paths($raw)
+    {
+        if (!is_string($raw)) {
+            return '';
+        }
+
+        $paths = [];
+        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
+            $line = trim(sanitize_text_field($line));
+            if ($line === '') {
+                continue;
+            }
+            if (preg_match('#^https?://#i', $line)) {
+                $line = (string) wp_parse_url($line, PHP_URL_PATH);
+            }
+            $line = '/' . ltrim($line, '/');
+            $paths[$line] = true;
+            if (count($paths) >= 100) {
+                break;
+            }
+        }
+
+        return implode("\n", array_keys($paths));
     }
 
     public function render_settings_page()
@@ -239,6 +329,33 @@ class Hay_Chat
                     </p>
                 <?php endif; ?>
             </div>
+
+            <?php if (!empty($settings['organization_id']) && $this->is_woocommerce_active()) : ?>
+                <?php $keys_url = admin_url('admin.php?page=wc-settings&tab=advanced&section=keys'); ?>
+                <div class="card" style="max-width:640px;margin:16px 0;">
+                    <?php if ($this->has_store_keys()) : ?>
+                        <p style="margin:0;">
+                            <span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span>
+                            <?php esc_html_e('Store actions connected', 'haychat'); ?>
+                            &nbsp;·&nbsp;<a href="<?php echo esc_url($this->get_store_connect_url()); ?>" target="_blank" rel="noopener"><?php esc_html_e('Reconnect', 'haychat'); ?> ↗</a>
+                            &nbsp;·&nbsp;<a href="<?php echo esc_url($keys_url); ?>"><?php esc_html_e('Manage keys', 'haychat'); ?></a>
+                        </p>
+                    <?php else : ?>
+                        <h2 style="margin-top:0;"><?php esc_html_e('Connect store actions', 'haychat'); ?></h2>
+                        <p><?php esc_html_e('Let the Hay.chat agent look up orders, track shipments and answer stock questions in your WooCommerce store. Hay.chat opens with your store filled in; click "Connect WooCommerce" there, then approve read/write access on the WooCommerce screen that follows.', 'haychat'); ?></p>
+                        <a class="button button-primary" href="<?php echo esc_url($this->get_store_connect_url()); ?>" target="_blank" rel="noopener"><?php esc_html_e('Connect store actions', 'haychat'); ?> ↗</a>
+                        <p class="description">
+                            <?php
+                            printf(
+                                /* translators: %s: link to the WooCommerce REST API keys screen */
+                                esc_html__('Prefer to do it by hand? Create a read/write key in %s and paste it into the WooCommerce settings in Hay.chat.', 'haychat'),
+                                '<a href="' . esc_url($keys_url . '&create-key=1') . '">' . esc_html__('WooCommerce › Settings › Advanced › REST API', 'haychat') . '</a>'
+                            );
+                            ?>
+                        </p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <form method="post" action="options.php">
                 <?php settings_fields('hay_chat'); ?>
@@ -297,6 +414,53 @@ class Hay_Chat
                             />
                             <p class="description">
                                 <?php esc_html_e('Your Hay.chat server URL. Default: https://eu.hay.chat (EU). The widget script is loaded automatically from this URL.', 'haychat'); ?>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th colspan="2"><h2><?php esc_html_e('Hide on', 'haychat'); ?></h2></th>
+                    </tr>
+
+                    <!-- WooCommerce pages -->
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Store pages', 'haychat'); ?></th>
+                        <td>
+                            <fieldset>
+                                <label>
+                                    <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[hide_on_cart]" value="1" <?php checked($settings['hide_on_cart']); ?> />
+                                    <?php esc_html_e('Cart', 'haychat'); ?>
+                                </label><br />
+                                <label>
+                                    <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[hide_on_checkout]" value="1" <?php checked($settings['hide_on_checkout']); ?> />
+                                    <?php esc_html_e('Checkout', 'haychat'); ?>
+                                </label><br />
+                                <label>
+                                    <input type="checkbox" name="<?php echo esc_attr($this->option_name); ?>[hide_on_account]" value="1" <?php checked($settings['hide_on_account']); ?> />
+                                    <?php esc_html_e('My account', 'haychat'); ?>
+                                </label>
+                            </fieldset>
+                            <p class="description">
+                                <?php esc_html_e('The widget is not loaded on the pages you tick. These options use WooCommerce and do nothing without it.', 'haychat'); ?>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Custom paths -->
+                    <tr>
+                        <th scope="row">
+                            <label for="hay_hide_on_paths"><?php esc_html_e('Other pages', 'haychat'); ?></label>
+                        </th>
+                        <td>
+                            <textarea
+                                id="hay_hide_on_paths"
+                                name="<?php echo esc_attr($this->option_name); ?>[hide_on_paths]"
+                                rows="4"
+                                class="large-text code"
+                                placeholder="/landing-page&#10;/members/*"
+                            ><?php echo esc_textarea($settings['hide_on_paths']); ?></textarea>
+                            <p class="description">
+                                <?php esc_html_e('One path per line, for example /landing-page. A * matches anything, so /members/* hides the widget on every page under /members/.', 'haychat'); ?>
                             </p>
                         </td>
                     </tr>
@@ -474,6 +638,10 @@ class Hay_Chat
             return;
         }
 
+        if ($this->is_hidden_here($settings)) {
+            return;
+        }
+
         $config = [
             'organizationId' => $settings['organization_id'],
             'baseUrl'        => $settings['base_url'],
@@ -481,6 +649,13 @@ class Hay_Chat
             'theme'          => $settings['theme'],
             'showGreeting'   => (bool) $settings['show_greeting'],
         ];
+
+        // With the WP Consent API active, the widget keeps nothing on the device
+        // between visits until the visitor's consent says it may (see consent_script()).
+        $use_consent_api = function_exists('wp_has_consent');
+        if ($use_consent_api) {
+            $config['consent'] = 'strict';
+        }
 
         // Only include optional fields if they have values
         $optional_fields = [
@@ -501,13 +676,101 @@ class Hay_Chat
         $base = rtrim($settings['base_url'], '/');
 
         // The widget is served by the Hay.chat server; version is managed there, not here.
-        wp_enqueue_style('hay-chat-widget', $base . '/v1/webchat/widget.css', [], null); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-        wp_enqueue_script('hay-chat-widget', $base . '/v1/webchat/widget.js', [], null, ['strategy' => 'async', 'in_footer' => false]); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+        // widget.js carries its own styles, so there is no stylesheet to block rendering.
+        wp_enqueue_script('hay-chat-widget', $base . '/v1/webchat/widget.js', [], null, ['strategy' => 'defer', 'in_footer' => true]); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
         wp_add_inline_script(
             'hay-chat-widget',
-            'window.HayChat = window.HayChat || {}; window.HayChat.config = ' . wp_json_encode($config) . ';',
+            'window.HayChat = window.HayChat || {}; window.HayChat.config = ' . wp_json_encode($config) . ';'
+                . ($use_consent_api ? $this->consent_script() : ''),
             'before'
         );
+    }
+
+    /**
+     * True when a "Hide on" rule matches the current request.
+     */
+    private function is_hidden_here($settings)
+    {
+        if (!empty($settings['hide_on_cart']) && function_exists('is_cart') && is_cart()) {
+            return true;
+        }
+        if (!empty($settings['hide_on_checkout']) && function_exists('is_checkout') && is_checkout()) {
+            return true;
+        }
+        if (!empty($settings['hide_on_account']) && function_exists('is_account_page') && is_account_page()) {
+            return true;
+        }
+        if (empty($settings['hide_on_paths']) || !isset($_SERVER['REQUEST_URI'])) {
+            return false;
+        }
+
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared against patterns, never output or stored.
+        $path = (string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+        $path = '/' . trim(rawurldecode($path), '/');
+
+        // Also match paths relative to the site root when WordPress lives in a subfolder.
+        $candidates = [$path];
+        $home_path  = '/' . trim((string) wp_parse_url(home_url(), PHP_URL_PATH), '/');
+        if ($home_path !== '/' && strpos($path . '/', $home_path . '/') === 0) {
+            $candidates[] = '/' . trim(substr($path, strlen($home_path)), '/');
+        }
+
+        foreach (explode("\n", $settings['hide_on_paths']) as $pattern) {
+            $pattern = '/' . trim($pattern, '/');
+            $regex   = '#^' . str_replace('\\*', '.*', preg_quote($pattern, '#')) . '$#i';
+            foreach ($candidates as $candidate) {
+                if (preg_match($regex, $candidate)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Keeps the widget's consent in step with the WP Consent API (Complianz,
+     * CookieYes and other consent plugins that support it). The widget only
+     * keeps chat history on the device between visits with "functional" consent;
+     * revoking wipes what it stored. Waits for widget.js, which may load deferred
+     * or be delayed by a caching plugin.
+     */
+    private function consent_script()
+    {
+        return <<<'JS'
+(function () {
+    var wanted = null, tries = 0, timer = null;
+    function apply() {
+        timer = null;
+        var hay = window.HayChat;
+        if (!hay || typeof hay.grantConsent !== 'function' || typeof hay.revokeConsent !== 'function') {
+            if (tries++ < 120) { timer = setTimeout(apply, 250); }
+            return;
+        }
+        if (wanted) { hay.grantConsent(); } else { hay.revokeConsent(); }
+    }
+    function sync(allowed) {
+        if (allowed === wanted) { return; }
+        wanted = allowed;
+        tries = 0;
+        if (!timer) { apply(); }
+    }
+    function current() {
+        return typeof window.wp_has_consent === 'function' && !!window.wp_has_consent('functional');
+    }
+    document.addEventListener('wp_listen_for_consent_change', function (event) {
+        var changed = (event && event.detail) || {};
+        if (Object.prototype.hasOwnProperty.call(changed, 'functional')) {
+            sync(changed.functional === 'allow');
+        }
+    });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { sync(current()); });
+    } else {
+        sync(current());
+    }
+})();
+JS;
     }
 }
 
