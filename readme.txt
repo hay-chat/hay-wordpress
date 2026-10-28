@@ -88,6 +88,7 @@ All plugin settings are removed from your database. No data is stored on your se
 * New: works with consent plugins through the WP Consent API. Without "functional" consent the widget keeps no chat history on the device between visits.
 * New: "Connect store actions" connects WooCommerce to Hay.chat in a few clicks, with a "Store actions connected" status.
 * Fix: "Connect with Hay.chat" now saves the Organization ID when the dashboard sends you back.
+* New: declares compatibility with WooCommerce High-Performance Order Storage and the block-based Cart and Checkout.
 
 = 1.0.1 =
 * Faster pages: the widget no longer loads a render-blocking stylesheet, and its script loads deferred in the footer.

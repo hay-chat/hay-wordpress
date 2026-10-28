@@ -11,6 +11,8 @@
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: haychat
+ * WC requires at least: 10.0
+ * WC tested up to: 11.2
  */
 
 if (!defined('ABSPATH')) {
@@ -773,6 +775,16 @@ class Hay_Chat
 JS;
     }
 }
+
+// Declare WooCommerce feature compatibility (Woo Marketplace requires HPOS). The plugin
+// never reads orders and only adds a script to the storefront, so it is compatible with
+// both HPOS and the block-based Cart and Checkout. Does nothing without WooCommerce.
+add_action('before_woocommerce_init', function () {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
+    }
+});
 
 // Initialize
 Hay_Chat::instance();
